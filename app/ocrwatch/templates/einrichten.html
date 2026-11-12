@@ -1,0 +1,13 @@
+{% extends "basis.html" %}
+{% block titel %}Einrichten{% endblock %}
+{% block inhalt %}
+<section class="karte schmal">
+  <h1><img src="/static/icon.svg" alt="" width="36" height="36"> Willkommen</h1>
+  <p>Im Template ist kein Passwort (<code>UI_PASS</code>) gesetzt. Bitte jetzt ein Passwort für die Weboberfläche festlegen – es wird verschlüsselt in der Datenbank gespeichert.</p>
+  <form method="post" action="/einrichten" class="formular">
+    <label>Passwort <input type="password" name="pw" minlength="8" required autofocus autocomplete="new-password"></label>
+    <label>Wiederholen <input type="password" name="pw2" minlength="8" required autocomplete="new-password"></label>
+    <button class="haupt">Speichern</button>
+  </form>
+</section>
+{% endblock %}

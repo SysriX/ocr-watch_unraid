@@ -1,0 +1,28 @@
+{% extends "basis.html" %}
+{% block titel %}Aufträge{% endblock %}
+{% block inhalt %}
+<h1>Aufträge</h1>
+<section class="karte">
+  <form method="get" class="filter">
+    <select name="status" onchange="this.form.submit()">
+      <option value="">alle Status</option>
+      {% for k, t in STATUS_TEXT.items() %}<option value="{{ k }}" {{ 'selected' if status == k }}>{{ t }}</option>{% endfor %}
+    </select>
+    <select name="profil" onchange="this.form.submit()">
+      <option value="">alle Profile</option>
+      {% for n in namen %}<option {{ 'selected' if profil == n }}>{{ n }}</option>{% endfor %}
+    </select>
+    <span class="klein">{{ gesamt }} Aufträge</span>
+    {% if status == 'fehler' and gesamt %}
+    <button formmethod="post" formaction="/auftraege/fehler-wiederholen" class="knopf" onclick="return confirm('Alle fehlerhaften Aufträge erneut verarbeiten?')">Alle erneut verarbeiten</button>
+    {% endif %}
+  </form>
+  {% include "_jobs.html" %}
+  {% if seiten > 1 %}
+  <nav class="seiten">
+    {% for s in range(1, seiten + 1) %}{% if s == seite %}<b>{{ s }}</b>{% elif s <= 3 or s > seiten - 3 or (s - seite)|abs < 3 %}<a href="?status={{ status }}&profil={{ profil|urlencode }}&seite={{ s }}">{{ s }}</a>{% elif s == 4 or s == seiten - 3 %}…{% endif %}{% endfor %}
+  </nav>
+  {% endif %}
+</section>
+<p class="klein">Bei einem Fehler liegt die Datei im Fehler-Ordner des Profils (mit <code>.fehler.txt</code> daneben). „erneut“ legt sie an den alten Ort zurück; sie wird beim nächsten Durchlauf neu verarbeitet.</p>
+{% endblock %}

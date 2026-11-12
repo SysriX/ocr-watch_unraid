@@ -1,0 +1,44 @@
+{% extends "basis.html" %}
+{% block titel %}Übersicht{% endblock %}
+{% block inhalt %}
+<h1>Übersicht</h1>
+<div class="kacheln" id="kacheln">
+  <div class="kachel"><span class="zahl" data-k="warteschlange">{{ k.wartet + k.laeuft }}</span><span>in Arbeit / wartend</span></div>
+  <div class="kachel gut"><span class="zahl" data-k="heute_fertig">{{ k.heute_fertig }}</span><span>heute verarbeitet</span></div>
+  <div class="kachel"><span class="zahl" data-k="heute_uebersprungen">{{ k.heute_uebersprungen }}</span><span>heute übersprungen<br><small>(schon lesbar)</small></span></div>
+  <a class="kachel {{ 'schlecht' if k.fehler_offen }}" href="/auftraege?status=fehler"><span class="zahl" data-k="fehler_offen">{{ k.fehler_offen }}</span><span>Fehler offen</span></a>
+</div>
+
+<section class="karte">
+  <div class="zeile-titel"><h2>Profile</h2><a class="knopf" href="/profile/neu">+ Neues Profil</a></div>
+  {% if not profile %}
+    <p class="leer">Noch kein Profil. <a href="/profile/neu">Jetzt das erste Profil anlegen</a> – z. B. einen Ordner, in den der Scanner speichert.</p>
+  {% else %}
+  <table class="tabelle">
+    <thead><tr><th>Profil</th><th>Ordner</th><th>Aktionen</th><th>Zustand</th></tr></thead>
+    <tbody>
+    {% for p in profile %}{% set z = zustand.get(p.id, {}) %}{% set o = opt(p.optionen) %}
+      <tr data-profil="{{ p.id }}">
+        <td><a href="/profile/{{ p.id }}">{{ p.name }}</a></td>
+        <td class="pfad">{{ p.pfad }}</td>
+        <td>{% if o.pdf.aktiv %}<span class="chip">PDF</span>{% endif %}{% if o.bilder.aktiv %}<span class="chip">Bilder→PDF</span>{% endif %}{% if o.heic.aktiv %}<span class="chip">HEIC→{{ o.heic.ziel|upper }}</span>{% endif %}</td>
+        <td class="zustand">
+          {% if not p.aktiv %}<span class="punkt aus"></span> pausiert
+          {% elif z.get('ok') is sameas false %}<span class="punkt rot"></span> {{ z.meldung }}
+          {% elif z.get('ok') %}<span class="punkt gruen"></span> überwacht ({{ z.dateien }} Dateien)
+          {% else %}<span class="punkt grau"></span> startet …{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+
+<section class="karte">
+  <div class="zeile-titel"><h2>Letzte Aufträge</h2><a href="/auftraege">alle anzeigen</a></div>
+  {% include "_jobs.html" %}
+</section>
+<p class="klein">Datenbank: {{ db }}</p>
+{% endblock %}
+{% block skript %}<script>uebersichtAktualisieren();</script>{% endblock %}

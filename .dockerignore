@@ -1,0 +1,8 @@
+.git
+.github
+templates
+*.md
+LICENSE
+**/__pycache__
+.env
+test/

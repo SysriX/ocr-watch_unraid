@@ -1,0 +1,46 @@
+{% extends "basis.html" %}
+{% block titel %}Einstellungen{% endblock %}
+{% block inhalt %}
+<h1>Einstellungen</h1>
+<form method="post" action="/einstellungen" class="formular">
+  <section class="karte">
+    <h2>Verarbeitung</h2>
+    <div class="spalten">
+      <label>Ordner abfragen alle <span class="mit-einheit"><input type="number" name="abfrage_intervall" value="{{ e.abfrage_intervall }}" min="2" max="3600"> s</span></label>
+      <label>Datei gilt als fertig nach <span class="mit-einheit"><input type="number" name="stabil_sekunden" value="{{ e.stabil_sekunden }}" min="2" max="3600"> s ohne Änderung</span></label>
+      <label>Aufträge gleichzeitig <span class="mit-einheit"><input type="number" name="parallel" value="{{ e.parallel }}" min="1" max="8"></span></label>
+      <label>CPU-Threads je Auftrag <span class="mit-einheit"><input type="number" name="ocr_threads" value="{{ e.ocr_threads }}" min="1" max="64"></span></label>
+      <label>Abbruch nach <span class="mit-einheit"><input type="number" name="timeout_minuten" value="{{ e.timeout_minuten }}" min="1" max="1440"> min je Auftrag</span></label>
+      <label>Standard-Sprachen <input type="text" name="sprachen" value="{{ e.sprachen }}"><small>installiert: {{ sprachen|join(', ') or '–' }}</small></label>
+      <label>Aufträge aufbewahren <span class="mit-einheit"><input type="number" name="job_aufbewahrung_tage" value="{{ e.job_aufbewahrung_tage }}" min="1" max="3650"> Tage</span></label>
+      <label>Log-Stufe <select name="log_level">{% for l in ['DEBUG','INFO','WARNING','ERROR'] %}<option {{ 'selected' if e.log_level == l }}>{{ l }}</option>{% endfor %}</select></label>
+    </div>
+  </section>
+
+  <section class="karte">
+    <h2><label class="haken"><input type="checkbox" name="mqtt_aktiv" {{ 'checked' if e.mqtt_aktiv }}> Home Assistant (MQTT)</label></h2>
+    <p class="klein">Legt per MQTT-Discovery ein Gerät mit Warteschlange, verarbeiteten Dateien, Fehlern und „Problem“-Sensor an.</p>
+    <div class="spalten">
+      <label>Broker <input type="text" name="mqtt_host" value="{{ e.mqtt_host }}" placeholder="z. B. 192.168.178.10"></label>
+      <label>Port <input type="number" name="mqtt_port" value="{{ e.mqtt_port }}"></label>
+      <label>Benutzer <input type="text" name="mqtt_user" value="{{ e.mqtt_user }}" autocomplete="off"></label>
+      <label>Passwort <input type="password" name="mqtt_pass" value="" placeholder="{{ '•••••• (unverändert)' if e.mqtt_pass else '' }}" autocomplete="new-password"></label>
+      <label>Gerätename <input type="text" name="ha_geraet" value="{{ e.ha_geraet }}"></label>
+      <label>Discovery-Präfix <input type="text" name="mqtt_prefix" value="{{ e.mqtt_prefix }}"></label>
+      <label>Melden alle <span class="mit-einheit"><input type="number" name="mqtt_intervall" value="{{ e.mqtt_intervall }}" min="10"> s</span></label>
+    </div>
+  </section>
+
+  <section class="karte">
+    <h2>Anmeldung</h2>
+    {% if pass_aus_env %}
+      <p>Das Passwort kommt aus <code>UI_PASS</code> im Unraid-Template und wird dort geändert.</p>
+    {% else %}
+      <label>Neues Passwort <input type="password" name="pw_neu" minlength="8" autocomplete="new-password" placeholder="leer = unverändert"></label>
+    {% endif %}
+  </section>
+
+  <div class="knoepfe unten"><button class="haupt">Speichern</button></div>
+</form>
+<p class="klein">Datenbank: {{ db }} · Alle Einstellungen und Profile liegen in der Datenbank.</p>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "basis.html" %}
+{% block titel %}{{ name or 'Neues Profil' }}{% endblock %}
+{% macro haken(feld, wert, text, hilfe='') %}
+<label class="haken"><input type="checkbox" name="{{ feld }}" {{ 'checked' if wert }}> {{ text }}{% if hilfe %} <small>{{ hilfe }}</small>{% endif %}</label>
+{% endmacro %}
+{% macro auswahl(feld, wert, optionen) %}
+<select name="{{ feld }}">{% for k, t in optionen %}<option value="{{ k }}" {{ 'selected' if wert == k }}>{{ t }}</option>{% endfor %}</select>
+{% endmacro %}
+{% macro ordnerfeld(feld, wert, platzhalter='') %}
+<div class="ordnerfeld"><input type="text" name="{{ feld }}" value="{{ wert }}" placeholder="{{ platzhalter }}"><button type="button" class="knopf" onclick="ordnerWaehlen(this)">Ordner…</button></div>
+{% endmacro %}
+{% block inhalt %}
+<h1>{{ 'Profil bearbeiten' if p else 'Neues Profil' }}</h1>
+<form method="post" action="/profile/speichern" class="formular profilform">
+  {% if p %}<input type="hidden" name="id" value="{{ p.id }}">{% endif %}
+
+  <section class="karte">
+    <h2>Allgemein</h2>
+    <div class="spalten">
+      <label>Name <input type="text" name="name" value="{{ name }}" required maxlength="100" placeholder="z. B. Scanner Büro"></label>
+      <label>Sprachen für die Texterkennung <input type="text" name="sprachen" value="{{ opt.sprachen }}" placeholder="Standard: {{ standard_sprachen }}"><small>z. B. <code>deu+eng</code></small></label>
+    </div>
+    <label>Watch-Ordner {{ ordnerfeld('pfad', pfad, basis ~ '/…') }}<small>Unterordner von <code>{{ basis }}</code> – welche Freigaben dort liegen, legst du im Unraid-Template fest.</small></label>
+    <div class="spalten">
+      {{ haken('aktiv', aktiv, 'Profil aktiv') }}
+      {{ haken('rekursiv', opt.rekursiv, 'Unterordner mit überwachen') }}
+      {{ haken('vorhandene_verarbeiten', opt.vorhandene_verarbeiten, 'Vorhandene Dateien beim ersten Durchlauf verarbeiten', '(sonst nur neue)') }}
+    </div>
+  </section>
+
+  <section class="karte">
+    <h2>Ergebnis und Original</h2>
+    <div class="spalten">
+      <label>Ergebnis ablegen {{ auswahl('ausgabe', opt.ausgabe, [('inplace','im selben Ordner wie das Original'),('ordner','in eigenen Ordner (gleiche Unterordner)')]) }}</label>
+      <label>Ausgabe-Ordner {{ ordnerfeld('ausgabe_ordner', opt.ausgabe_ordner, 'nur bei „in eigenen Ordner“') }}</label>
+    </div>
+    <div class="spalten">
+      <label>Original (PDF und Bilder) {{ auswahl('original', opt.original, [('archivieren','ins Archiv verschieben'),('behalten','behalten'),('loeschen','löschen')]) }}<small>„behalten“ im selben Ordner: Ergebnis heißt <code>name_ocr.pdf</code></small></label>
+      <label>Archiv-Ordner {{ ordnerfeld('archiv_ordner', opt.archiv_ordner, 'Standard: Watch-Ordner/_archiv') }}</label>
+      <label>Fehler-Ordner {{ ordnerfeld('fehler_ordner', opt.fehler_ordner, 'Standard: Watch-Ordner/_fehler') }}</label>
+    </div>
+  </section>
+
+  <section class="karte aktion">
+    <h2>{{ haken('pdf.aktiv', opt.pdf.aktiv, 'PDF-Dateien lesbar machen') }}</h2>
+    <div class="spalten">
+      <label>Vorgehen {{ auswahl('pdf.modus', opt.pdf.modus, [('auto','automatisch: jede Seite prüfen, nur wo nötig'),('skip-text','nur Seiten ohne Text erkennen'),('redo-ocr','vorhandene OCR erneuern'),('force-ocr','alles neu erkennen (rastert Text!)')]) }}</label>
+      <label>Seite gilt als lesbar ab <span class="mit-einheit"><input type="number" name="pdf.min_zeichen" value="{{ opt.pdf.min_zeichen }}" min="1" max="5000"> Zeichen</span></label>
+      <label>Text gilt als Müll unter <span class="mit-einheit"><input type="number" name="pdf.min_qualitaet" value="{{ opt.pdf.min_qualitaet }}" min="0" max="100"> % Buchstaben/Ziffern</span></label>
+      <label>Optimieren {{ auswahl('pdf.optimieren', opt.pdf.optimieren, [(0,'0 – aus'),(1,'1 – verlustfrei'),(2,'2 – stärker (verlustbehaftet)'),(3,'3 – am stärksten')]) }}</label>
+    </div>
+    <div class="spalten">
+      {{ haken('pdf.pdfa', opt.pdf.pdfa, 'als PDF/A speichern', '(Archivformat)') }}
+      {{ haken('pdf.drehen', opt.pdf.drehen, 'Seiten automatisch drehen') }}
+      {{ haken('pdf.begradigen', opt.pdf.begradigen, 'schiefe Scans begradigen') }}
+    </div>
+  </section>
+
+  <section class="karte aktion">
+    <h2>{{ haken('bilder.aktiv', opt.bilder.aktiv, 'Bilder in durchsuchbare PDFs umwandeln') }}</h2>
+    <label>Bildtypen</label>
+    <div class="spalten typen">
+      {% for t in BILD_TYPEN %}<label class="haken"><input type="checkbox" name="bilder.typen" value="{{ t }}" {{ 'checked' if t in opt.bilder.typen }}> {{ t }}</label>{% endfor %}
+    </div>
+    <div class="spalten">
+      <label>Bündeln {{ auswahl('bilder.buendeln', opt.bilder.buendeln, [('einzeln','je Bild ein PDF'),('ordner','alle Bilder eines Ordners → ein PDF'),('zeitfenster','alle Bilder, die kurz nacheinander kommen → ein PDF')]) }}</label>
+      <label>Bündeln nach <span class="mit-einheit"><input type="number" name="bilder.wartezeit" value="{{ opt.bilder.wartezeit }}" min="10" max="86400"> Sekunden ohne neues Bild</span></label>
+    </div>
+    <p class="klein">HEIC-Dateien gehen nur dann in ein PDF, wenn „HEIC umwandeln“ unten aus ist und heic/heif hier angehakt ist.</p>
+  </section>
+
+  <section class="karte aktion">
+    <h2>{{ haken('heic.aktiv', opt.heic.aktiv, 'HEIC-Fotos (iPhone) in normale Bilder umwandeln') }}</h2>
+    <div class="spalten">
+      <label>Zielformat {{ auswahl('heic.ziel', opt.heic.ziel, [('jpg','JPG'),('png','PNG (verlustfrei, groß)'),('webp','WebP')]) }}</label>
+      <label>Qualität <span class="mit-einheit"><input type="number" name="heic.qualitaet" value="{{ opt.heic.qualitaet }}" min="1" max="100"> % (JPG/WebP)</span></label>
+      <label>Original-HEIC {{ auswahl('heic.original', opt.heic.original, [('archivieren','ins Archiv verschieben'),('behalten','behalten'),('loeschen','löschen')]) }}</label>
+    </div>
+    {{ haken('heic.exif_behalten', opt.heic.exif_behalten, 'EXIF-Daten behalten', '(Aufnahmedatum, Kamera, GPS)') }}
+  </section>
+
+  <div class="knoepfe unten">
+    <button class="haupt">Speichern</button>
+    <a class="knopf" href="/profile">Abbrechen</a>
+  </div>
+</form>
+
+<dialog id="ordnerdialog">
+  <form method="dialog" class="ordnerwahl">
+    <h2>Ordner wählen</h2>
+    <div class="aktueller"><code id="od-pfad"></code></div>
+    <ul id="od-liste"></ul>
+    <div class="knoepfe">
+      <button type="button" class="knopf" onclick="ordnerNeu()">+ Neuer Ordner</button>
+      <span class="abstand"></span>
+      <button value="abbrechen" class="knopf">Abbrechen</button>
+      <button type="button" class="haupt" onclick="ordnerUebernehmen()">Diesen Ordner wählen</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}

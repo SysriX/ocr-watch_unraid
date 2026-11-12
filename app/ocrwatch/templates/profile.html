@@ -1,0 +1,33 @@
+{% extends "basis.html" %}
+{% block titel %}Profile{% endblock %}
+{% block inhalt %}
+<div class="zeile-titel"><h1>Profile</h1><a class="knopf haupt" href="/profile/neu">+ Neues Profil</a></div>
+{% if not profile %}
+<section class="karte"><p class="leer">Noch kein Profil angelegt.</p></section>
+{% endif %}
+<div class="raster">
+{% for p in profile %}{% set o = opt(p.optionen) %}{% set z = zustand.get(p.id, {}) %}
+  <section class="karte profil {{ '' if p.aktiv else 'pausiert' }}">
+    <div class="zeile-titel">
+      <h2><a href="/profile/{{ p.id }}">{{ p.name }}</a></h2>
+      {% if not p.aktiv %}<span class="status wiederholt">pausiert</span>
+      {% elif z.get('ok') is sameas false %}<span class="status fehler">{{ z.meldung }}</span>
+      {% else %}<span class="status fertig">aktiv</span>{% endif %}
+    </div>
+    <p class="pfad">{{ p.pfad }}</p>
+    <ul class="eigenschaften">
+      {% if o.pdf.aktiv %}<li><b>PDF:</b> {{ {'auto':'automatisch prüfen','skip-text':'nur Seiten ohne Text','redo-ocr':'OCR erneuern','force-ocr':'alles neu erkennen'}[o.pdf.modus] }}{% if o.pdf.pdfa %}, PDF/A{% endif %}</li>{% endif %}
+      {% if o.bilder.aktiv %}<li><b>Bilder → PDF:</b> {{ o.bilder.typen|join(', ') }} · {{ {'einzeln':'je Bild ein PDF','ordner':'pro Ordner ein PDF','zeitfenster':'nach Zeitfenster bündeln'}[o.bilder.buendeln] }}</li>{% endif %}
+      {% if o.heic.aktiv %}<li><b>HEIC → {{ o.heic.ziel|upper }}</b>{% if o.heic.ziel != 'png' %} ({{ o.heic.qualitaet }} %){% endif %}{% if o.heic.exif_behalten %}, EXIF behalten{% endif %}</li>{% endif %}
+      <li><b>Ergebnis:</b> {{ 'im selben Ordner' if o.ausgabe == 'inplace' else o.ausgabe_ordner }} · Original: {{ {'archivieren':'ins Archiv','loeschen':'löschen','behalten':'behalten'}[o.original] }}</li>
+      <li><b>Sprachen:</b> {{ o.sprachen or 'Standard' }} · {{ zahlen.get(p.id, 0) }} Aufträge</li>
+    </ul>
+    <div class="knoepfe">
+      <a class="knopf" href="/profile/{{ p.id }}">Bearbeiten</a>
+      <form method="post" action="/profile/{{ p.id }}/umschalten"><button class="knopf">{{ 'Pausieren' if p.aktiv else 'Aktivieren' }}</button></form>
+      <form method="post" action="/profile/{{ p.id }}/loeschen" onsubmit="return confirm('Profil „{{ p.name }}“ löschen? Die Dateien im Ordner bleiben unverändert.')"><button class="knopf gefahr">Löschen</button></form>
+    </div>
+  </section>
+{% endfor %}
+</div>
+{% endblock %}

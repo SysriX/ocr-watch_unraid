@@ -1,0 +1,35 @@
+{% if not jobs %}
+<p class="leer">Noch keine Aufträge.</p>
+{% else %}
+<table class="tabelle jobs">
+  <thead><tr><th>#</th><th>Zeit</th><th>Profil</th><th>Aktion</th><th>Datei</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for j in jobs %}
+    <tr class="st-{{ j.status }}">
+      <td>{{ j.id }}</td>
+      <td class="nowrap">{{ j.erstellt|zeit }}</td>
+      <td>{{ j.profil_name }}</td>
+      <td>{{ ART_TEXT.get(j.art, j.art) }}</td>
+      <td class="pfad">
+        <details>
+          <summary>{{ j.quellen[0]|name if j.quellen }}{% if j.quellen|length > 1 %} <small>+{{ j.quellen|length - 1 }}</small>{% endif %}{% if j.ziel %} → {{ j.ziel|name }}{% endif %}</summary>
+          <dl class="details">
+            <dt>Quelle</dt><dd>{% for q in j.quellen %}{{ q }}<br>{% endfor %}</dd>
+            {% if j.ziel %}<dt>Ergebnis</dt><dd>{{ j.ziel }}</dd>{% endif %}
+            {% if j.fehler_pfade %}<dt>Jetzt in</dt><dd>{% for f in j.fehler_pfade %}{{ f }}<br>{% endfor %}</dd>{% endif %}
+            {% if j.meldung %}<dt>Meldung</dt><dd><pre>{{ j.meldung }}</pre></dd>{% endif %}
+            {% set d = j.details or {} %}
+            {% if d.get('modus') %}<dt>OCR-Modus</dt><dd>{{ d.modus }}{% if d.get('hinweis') %} – {{ d.hinweis }}{% endif %}</dd>{% endif %}
+            {% if d.get('befund') %}<dt>Prüfung</dt><dd>{{ d.befund.seiten }} Seiten{% if d.befund.ohne_text %}, ohne Text: {{ d.befund.ohne_text|join(', ') }}{% endif %}{% if d.befund.schlechter_text %}, schlechter Text: {{ d.befund.schlechter_text|join(', ') }}{% endif %}</dd>{% endif %}
+            {% if d.get('dauer_s') %}<dt>Dauer</dt><dd>{{ d.dauer_s }} s</dd>{% endif %}
+            {% if j.beendet %}<dt>Beendet</dt><dd>{{ j.beendet|zeit }}</dd>{% endif %}
+          </dl>
+        </details>
+      </td>
+      <td><span class="status {{ j.status }}">{{ STATUS_TEXT.get(j.status, j.status) }}</span></td>
+      <td>{% if j.status == 'fehler' %}<form method="post" action="/auftraege/{{ j.id }}/wiederholen"><button class="klein-knopf">erneut</button></form>{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}

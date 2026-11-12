@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>ocr-watch</Name>
+  <Repository>ghcr.io/sysrix/ocr-watch:latest</Repository>
+  <Registry>https://github.com/SysriX/ocr-watch_unraid/pkgs/container/ocr-watch</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/SysriX/ocr-watch_unraid/issues</Support>
+  <Project>https://github.com/SysriX/ocr-watch_unraid</Project>
+  <ReadMe>https://github.com/SysriX/ocr-watch_unraid/blob/main/README.md</ReadMe>
+  <Overview>Überwacht Ordner mit Profilen und macht daraus durchsuchbare Dokumente: PDFs werden Seite für Seite geprüft und nur dort per OCR (OCRmyPDF/Tesseract) lesbar gemacht, wo Text fehlt oder Müll ist. Bilder (JPG, PNG, TIFF, HEIC …) werden einzeln, pro Ordner oder nach Zeitfenster zu PDF/A mit Texterkennung. HEIC-Fotos vom iPhone werden auf Wunsch in JPG, PNG oder WebP umgewandelt (Qualität einstellbar, EXIF bleibt).&#xD;
+&#xD;
+Weboberfläche mit Profil-Editor und Ordner-Browser, Auftragsverlauf und „erneut verarbeiten“. Originale ins Archiv, Fehler in einen Fehler-Ordner. Funktioniert auch auf SMB/NFS-Freigaben (Polling statt inotify). Einstellungen in SQLite oder MariaDB. Optional: Meldung an Home Assistant per MQTT.&#xD;
+&#xD;
+Wichtig: Unter „Daten“ den Bereich einbinden, in dem die Watch-Ordner liegen (z. B. /mnt/user). Für Unassigned-Devices-Freigaben (/mnt/remotes) den Zugriffsmodus RW/Slave verwenden.</Overview>
+  <Category>Productivity: Tools:Utilities</Category>
+  <ExtraSearchTerms>ocr pdf ocrmypdf tesseract scan scanner heic jpg png convert pdfa watch folder hotfolder dokumente</ExtraSearchTerms>
+  <WebUI>http://[IP]:[PORT:8080]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/SysriX/ocr-watch_unraid/main/templates/ocr-watch.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/SysriX/ocr-watch_unraid/main/icon.svg</Icon>
+  <ExtraParams>--hostname ocr-watch --log-opt max-size=10m --log-opt max-file=3</ExtraParams>
+  <PostArgs/>
+  <Requires>Optional: MariaDB (sonst SQLite in appdata). Für Home Assistant: MQTT-Broker (z. B. Mosquitto) mit MQTT-Integration.</Requires>
+  <License>MIT</License>
+  <Config Name="Weboberfläche" Target="8080" Default="8080" Mode="tcp" Description="Port der Weboberfläche." Type="Port" Display="always" Required="true" Mask="false">8080</Config>
+  <Config Name="Konfiguration" Target="/config" Default="/mnt/user/appdata/ocr-watch" Mode="rw" Description="SQLite-Datenbank (wenn DB_TYPE=sqlite)." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/ocr-watch</Config>
+  <Config Name="Daten" Target="/data" Default="/mnt/user" Mode="rw" Description="Bereich, in dem die Watch-Ordner liegen. In der Weboberfläche wählst du darunter je Profil einen Ordner." Type="Path" Display="always" Required="true" Mask="false">/mnt/user</Config>
+  <Config Name="Daten 2 (Netzfreigaben)" Target="/data/remotes" Default="/mnt/remotes" Mode="rw,slave" Description="Optional: Freigaben aus Unassigned Devices (SMB/NFS). RW/Slave, damit später eingebundene Freigaben sichtbar werden. Leer lassen, wenn nicht gebraucht." Type="Path" Display="always" Required="false" Mask="false"/>
+  <Config Name="Passwort" Target="UI_PASS" Default="" Mode="" Description="Passwort für die Weboberfläche. Leer = beim ersten Aufruf in der Weboberfläche festlegen." Type="Variable" Display="always" Required="false" Mask="true"/>
+  <Config Name="Datenbank" Target="DB_TYPE" Default="sqlite|mariadb" Mode="" Description="sqlite = Datei in /config (einfach). mariadb = vorhandene MariaDB nutzen (Felder darunter ausfüllen, Datenbank und Benutzer vorher anlegen)." Type="Variable" Display="always" Required="true" Mask="false">sqlite</Config>
+  <Config Name="MariaDB-Host" Target="DB_HOST" Default="" Mode="" Description="IP oder Name der MariaDB (nur bei DB_TYPE=mariadb)." Type="Variable" Display="always" Required="false" Mask="false"/>
+  <Config Name="MariaDB-Port" Target="DB_PORT" Default="3306" Mode="" Description="Port der MariaDB." Type="Variable" Display="advanced" Required="false" Mask="false">3306</Config>
+  <Config Name="MariaDB-Datenbank" Target="DB_NAME" Default="ocrwatch" Mode="" Description="Name der Datenbank (muss existieren, Tabellen legt ocr-watch selbst an)." Type="Variable" Display="always" Required="false" Mask="false">ocrwatch</Config>
+  <Config Name="MariaDB-Benutzer" Target="DB_USER" Default="ocrwatch" Mode="" Description="Benutzer mit allen Rechten auf diese Datenbank." Type="Variable" Display="always" Required="false" Mask="false">ocrwatch</Config>
+  <Config Name="MariaDB-Passwort" Target="DB_PASS" Default="" Mode="" Description="Passwort des MariaDB-Benutzers." Type="Variable" Display="always" Required="false" Mask="true"/>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="Benutzer-ID für neue Dateien (Unraid: 99 = nobody)." Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Gruppen-ID für neue Dateien (Unraid: 100 = users)." Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
+  <Config Name="UMASK" Target="UMASK" Default="0002" Mode="" Description="Rechte für neue Dateien (0002 = Gruppe darf schreiben)." Type="Variable" Display="advanced" Required="false" Mask="false">0002</Config>
+  <Config Name="MQTT-Broker (Startwert)" Target="MQTT_HOST" Default="" Mode="" Description="Optional, nur beim ersten Start übernommen – danach in der Weboberfläche unter Einstellungen pflegen." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="MQTT-Benutzer (Startwert)" Target="MQTT_USER" Default="" Mode="" Description="Optional, nur beim ersten Start übernommen." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="MQTT-Passwort (Startwert)" Target="MQTT_PASS" Default="" Mode="" Description="Optional, nur beim ersten Start übernommen." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+  <Config Name="Zeitzone" Target="TZ" Default="Europe/Berlin" Mode="" Description="Zeitzone für Logs und Dateinamen." Type="Variable" Display="advanced" Required="false" Mask="false">Europe/Berlin</Config>
+</Container>

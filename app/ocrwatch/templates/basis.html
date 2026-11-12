@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titel %}ocr-watch{% endblock %} · ocr-watch</title>
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/stil.css?v={{ version }}">
+</head>
+<body>
+{% if request.session.get("ok") %}
+<header class="kopf">
+  <a class="marke" href="/"><img src="/static/icon.svg" alt="" width="28" height="28"> ocr-watch</a>
+  <nav>
+    {% set p = request.url.path %}
+    <a href="/" class="{{ 'aktiv' if p == '/' }}">Übersicht</a>
+    <a href="/profile" class="{{ 'aktiv' if p.startswith('/profile') }}">Profile</a>
+    <a href="/auftraege" class="{{ 'aktiv' if p.startswith('/auftraege') }}">Aufträge</a>
+    <a href="/einstellungen" class="{{ 'aktiv' if p.startswith('/einstellungen') }}">Einstellungen</a>
+  </nav>
+  <form method="post" action="/abmelden"><button class="leise">Abmelden</button></form>
+</header>
+{% endif %}
+<main>
+{% if meldung %}<div class="hinweis {{ meldung[0] }}">{{ meldung[1] }}</div>{% endif %}
+{% if fehler %}<div class="hinweis fehler">{{ fehler }}</div>{% endif %}
+{% block inhalt %}{% endblock %}
+</main>
+<footer>ocr-watch {{ version }} · <a href="https://github.com/SysriX/ocr-watch_unraid" target="_blank" rel="noopener">GitHub</a></footer>
+<script src="/static/app.js?v={{ version }}"></script>
+{% block skript %}{% endblock %}
+</body>
+</html>
