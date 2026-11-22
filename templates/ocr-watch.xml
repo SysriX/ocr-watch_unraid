@@ -19,7 +19,7 @@ Wichtig: Unter „Daten“ den Bereich einbinden, in dem die Watch-Ordner liegen
   <ExtraSearchTerms>ocr pdf ocrmypdf tesseract scan scanner heic jpg png convert pdfa watch folder hotfolder dokumente</ExtraSearchTerms>
   <WebUI>http://[IP]:[PORT:8080]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/SysriX/ocr-watch_unraid/main/templates/ocr-watch.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/SysriX/ocr-watch_unraid/main/icon.svg</Icon>
+  <Icon>https://raw.githubusercontent.com/SysriX/ocr-watch_unraid/main/icon.png</Icon>
   <ExtraParams>--hostname ocr-watch --log-opt max-size=10m --log-opt max-file=3</ExtraParams>
   <PostArgs/>
   <Requires>Optional: MariaDB (sonst SQLite in appdata). Für Home Assistant: MQTT-Broker (z. B. Mosquitto) mit MQTT-Integration.</Requires>
